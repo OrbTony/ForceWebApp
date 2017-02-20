@@ -404,10 +404,10 @@
     <Content Include="Web References\SFDC\QuickActionTemplateResult.datasource">
       <DependentUpon>Reference.map</DependentUpon>
     </Content>
-    <Content Include="Web References\SFDC\Reference.map">
+    <None Include="Web References\SFDC\Reference.map">
       <Generator>MSDiscoCodeGenerator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
-    </Content>
+    </None>
     <Content Include="Web References\SFDC\RenderEmailTemplateResult.datasource">
       <DependentUpon>Reference.map</DependentUpon>
     </Content>
