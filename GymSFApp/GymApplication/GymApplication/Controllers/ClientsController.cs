@@ -1,0 +1,55 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using GymApplication.SFDC;
+
+namespace GymApplication.Controllers
+{
+    public class ClientsController : Controller
+    {
+        string userName = "mcconvilletony@tutorial.com";
+
+        string password = "First58Peter";
+
+        // GET: Clients
+        public ActionResult Index()
+        {
+            authenticate();
+            return View();
+        }
+
+        public void authenticate()
+        {
+            SforceService SfdcBinding = new SforceService();
+            LoginResult CurrentLoginResult = null;
+
+            try
+            {
+                CurrentLoginResult = SfdcBinding.login(userName, password);
+            }
+            catch (System.Web.Services.Protocols.SoapException e)
+            {
+                //This is likley to be caused by bad username or password
+                SfdcBinding = null;
+
+                throw e;
+            }
+            catch (Exception e)
+            {
+                //This is something else, probably comminication
+                SfdcBinding = null;
+
+                throw e;
+            }
+            //Change the binding to the new endpoint
+            SfdcBinding.Url = CurrentLoginResult.serverUrl;
+
+            //Create a new session header object and set the session id to that returned by the login
+            SfdcBinding.SessionHeaderValue = new SessionHeader();
+            SfdcBinding.SessionHeaderValue.sessionId = CurrentLoginResult.sessionId;
+
+        }
+    }
+}
