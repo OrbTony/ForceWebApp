@@ -213,6 +213,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="SalesforceAuthentication.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="Web References\SFDC\Reference.cs">
       <AutoGen>True</AutoGen>
@@ -358,6 +359,7 @@
       <DependentUpon>Reference.map</DependentUpon>
     </Content>
     <Content Include="Views\Clients\Index.cshtml" />
+    <Content Include="Views\Clients\Create.cshtml" />
     <None Include="Web References\SFDC\enterprise.wsdl" />
     <Content Include="Web References\SFDC\ExecuteListViewResult.datasource">
       <DependentUpon>Reference.map</DependentUpon>

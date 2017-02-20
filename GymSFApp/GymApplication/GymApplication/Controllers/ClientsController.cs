@@ -4,14 +4,14 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using GymApplication.SFDC;
+using System.Threading.Tasks;
 
 namespace GymApplication.Controllers
 {
     public class ClientsController : Controller
     {
-        string userName = "mcconvilletony@tutorial.com";
 
-        string password = "First58PeterhzvEfe7Ujw78k2x6789AuVHg";
+        SalesforceAuthentication sforceAuth = new SalesforceAuthentication();
 
         // GET: Clients
         public ActionResult Index()
@@ -20,112 +20,59 @@ namespace GymApplication.Controllers
             IEnumerable<Client__c> selectedClients = Enumerable.Empty<Client__c>();
             //authenticate();
 
-             SforceService SfdcBinding = new SforceService();
-            LoginResult CurrentLoginResult = null;
-
-            try
-            {
-                CurrentLoginResult = SfdcBinding.login(userName, password);
-            }
-            catch (System.Web.Services.Protocols.SoapException e)
-            {
-                //This is likley to be caused by bad username or password
-                SfdcBinding = null;
-
-                throw e;
-            }
-            catch (Exception e)
-            {
-                //This is something else, probably comminication
-                SfdcBinding = null;
-
-                throw e;
-            }
-            //Change the binding to the new endpoint
-            SfdcBinding.Url = CurrentLoginResult.serverUrl;
-
-            //Create a new session header object and set the session id to that returned by the login
-            SfdcBinding.SessionHeaderValue = new SessionHeader();
-            SfdcBinding.SessionHeaderValue.sessionId = CurrentLoginResult.sessionId;
-
             QueryResult queryResult = null;
             String SOQL = "";
 
-            SOQL = "SELECT First_Name__c, Last_Name__c, Email__c, Phone_Number__c FROM Client__c";
+            SOQL = "SELECT Name, First_Name__c, Last_Name__c, Email__c, Phone_Number__c FROM Client__c";
 
-            queryResult = SfdcBinding.query(SOQL);
+            queryResult = sforceAuth.SfdcBinding.query(SOQL);
 
-
-
-            //var model = (from p in db.Persons // .Includes("Addresses") here?
-            //             select new PersonAddViewModel()
-            //             {
-            //                 Id = p.Id,
-            //                 Name = p.Name,
-            //                 Street = p.Address.Street,
-            //                 // or if collection
-            //                 Street2 = p.Addresses.Select(a => a.Street).FirstOrDefault()
-            //             });
 
             selectedClients = queryResult.records.AsEnumerable().Cast<Client__c>();
 
             return View(selectedClients);
         }
 
-        //public IEnumerable<Client__c> authenticate()
-        //{
-            //SforceService SfdcBinding = new SforceService();
-            //LoginResult CurrentLoginResult = null;
+        public ActionResult Create()
+        {
+            return View();
+        }
 
-            //try
-            //{
-            //    CurrentLoginResult = SfdcBinding.login(userName, password);
-            //}
-            //catch (System.Web.Services.Protocols.SoapException e)
-            //{
-            //    //This is likley to be caused by bad username or password
-            //    SfdcBinding = null;
+        //POST: Client
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Create(Client__c client)
+        {
 
-            //    throw e;
-            //}
-            //catch (Exception e)
-            //{
-            //    //This is something else, probably comminication
-            //    SfdcBinding = null;
+            try
+            {
+                SaveResult[] saveResults = sforceAuth.SfdcBinding.create(new sObject[] { client });
 
-            //    throw e;
-            //}
-            ////Change the binding to the new endpoint
-            //SfdcBinding.Url = CurrentLoginResult.serverUrl;
+                if (saveResults[0].success)
+                {
+                    string Id = "";
+                    Id = saveResults[0].id;
+                }
+                else
+                {
+                    string result = "";
+                    result = saveResults[0].errors[0].message;
+                }
 
-            ////Create a new session header object and set the session id to that returned by the login
-            //SfdcBinding.SessionHeaderValue = new SessionHeader();
-            //SfdcBinding.SessionHeaderValue.sessionId = CurrentLoginResult.sessionId;
-
-            //QueryResult queryResult = null;
-            //String SOQL = "";
-
-            //SOQL = "SELECT First_Name__c, Last_Name__c, Email__c, Phone_Number__c FROM Client__c";
-
-            //queryResult = SfdcBinding.query(SOQL);
-
-            //if (queryResult.size > 0)
-            //{
-            //    //put some code in here to handle the records being returned
-            //    int i = 0;
-            //    Client__c lead = (Lead)queryResult.records[i];
-            //    string firstName = lead.FirstName;
-            //    string lastName = lead.LastName;
-            //    string businessPhone = lead.Phone;
-            //}
-            //else
-            //{
-            //    //put some code in here to handle no records being returned
-            //    string message = "No records returned.";
-            //}
-
-//            return queryResult.records;
-
-//        }
+            }
+            catch (Exception e)
+            {
+                this.ViewBag.OperationName = "Create Salesforce Client";
+                this.ViewBag.ErrorMessage = e.Message;
+            }
+            if (this.ViewBag.ErrorMessage == null)
+            {
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                return View(client);
+            }
+        }
     }
 }
