@@ -5,6 +5,7 @@ using System.Web;
 using System.Web.Mvc;
 using GymApplication.SFDC;
 using System.Threading.Tasks;
+using System.Net;
 
 namespace GymApplication.Controllers
 {
@@ -14,6 +15,7 @@ namespace GymApplication.Controllers
         SalesforceAuthentication sforceAuth = new SalesforceAuthentication();
 
         // GET: Clients
+        //This should be async
         public ActionResult Index()
         {
 
@@ -23,7 +25,7 @@ namespace GymApplication.Controllers
             QueryResult queryResult = null;
             String SOQL = "";
 
-            SOQL = "SELECT Name, First_Name__c, Last_Name__c, Email__c, Phone_Number__c FROM Client__c";
+            SOQL = "SELECT Id, Name, First_Name__c, Last_Name__c, Email__c, Phone_Number__c FROM Client__c";
 
             queryResult = sforceAuth.SfdcBinding.query(SOQL);
 
@@ -39,6 +41,7 @@ namespace GymApplication.Controllers
         }
 
         //POST: Client
+        //This should be async
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(Client__c client)
@@ -74,5 +77,61 @@ namespace GymApplication.Controllers
                 return View(client);
             }
         }
+
+        //this should be async
+        public ActionResult Delete(string id)        {            if (id == null)            {                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);            }
+
+            IEnumerable<Client__c> selectedClients = Enumerable.Empty<Client__c>();
+            try            {
+                QueryResult queryResult = null;
+                String SOQL = "";
+
+                SOQL = string.Format("SELECT Id, Name, First_Name__c, Last_Name__c, Email__c, Phone_Number__c FROM Client__c WHERE Id ='{0}'", id);
+
+                queryResult = sforceAuth.SfdcBinding.query(SOQL);
+                selectedClients = queryResult.records.AsEnumerable().Cast<Client__c>();            }
+            catch (Exception e)            {                this.ViewBag.OperationName = "query Salesforce Contacts";                this.ViewBag.ErrorMessage = e.Message;            }
+            if (this.ViewBag.ErrorMessage == "AuthorizationRequired")            {                return Redirect(this.ViewBag.AuthorizationUrl);            }
+            if (selectedClients.Count() == 0)            {                return View();            }
+            else            {                return View(selectedClients.FirstOrDefault());            }
+        }
+
+        //this should be async
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public ActionResult DeleteConfirmed(string id)
+        {
+            String[] ids = new String[] { id };
+            bool success = false;
+            try
+            {
+                DeleteResult[] deleteResults = sforceAuth.SfdcBinding.delete(ids);
+                DeleteResult deleteResult = deleteResults[0];
+
+                if (deleteResult.success)
+                {
+                    success = true;
+                }
+
+            }
+            catch (Exception e)
+            {
+                this.ViewBag.OperationName = "Delete Gym Clients";
+                this.ViewBag.ErrorMessage = e.Message;
+            }
+            if (this.ViewBag.ErrorMessage == "AuthorizationRequired")
+            {
+                return Redirect(this.ViewBag.AuthorizationUrl);
+            }
+            if (success)
+            {
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                return View();
+            }
+        }
+
     }
 }
