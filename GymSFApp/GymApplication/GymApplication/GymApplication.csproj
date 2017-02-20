@@ -361,6 +361,7 @@
     <Content Include="Views\Clients\Index.cshtml" />
     <Content Include="Views\Clients\Create.cshtml" />
     <Content Include="Views\Clients\Delete.cshtml" />
+    <Content Include="Views\Clients\Edit.cshtml" />
     <None Include="Web References\SFDC\enterprise.wsdl" />
     <Content Include="Web References\SFDC\ExecuteListViewResult.datasource">
       <DependentUpon>Reference.map</DependentUpon>
